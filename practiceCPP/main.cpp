@@ -23,70 +23,107 @@ public:
 };
 //==============================================================================================================================
 template <class T>
-class myUniquePtr
+class mySharedPtr
 {
 private:
     T *ptr;
-    string name = "*";
+    int *ref;
 
 public:
-    myUniquePtr(string);
-    myUniquePtr(T *, string);
-    ~myUniquePtr();
-    myUniquePtr(myUniquePtr &&);
-    void operator=(myUniquePtr &&);
-    myUniquePtr(const myUniquePtr &) = delete;
-    myUniquePtr &operator=(const myUniquePtr &) = delete;
-    T *operator->();
-    T &operator*();
-    void setObjectName(string s) { this->name = s; }
+    mySharedPtr();
+    mySharedPtr(T *);
+    ~mySharedPtr();
+    mySharedPtr(const mySharedPtr &obj)
+    {
+        cout << " mySharedPtr Copy Constructor " << endl;
+        this->ptr = obj.ptr;
+        this->ref = obj.ref;
+        *this->ref = *this->ref + 1;
+    }
+    mySharedPtr &operator=(const mySharedPtr<T> &obj)
+    {
+        cout << " mySharedPtr Assignment operator " << endl;
+        if (this != &obj)
+        {
+            this->ptr = obj.ptr;
+            this->ref = obj.ref;
+            *this->ref = *this->ref + 1;
+        }
+        return *this;
+    }
+    mySharedPtr(mySharedPtr &&);
+    void operator=(mySharedPtr &&);
+
+    // T *operator->();
+    // T &operator*();
+    // void setObjectName(string s) { this->name = s; }
 };
 //==============================================================================================================================
 template <class T>
-myUniquePtr<T>::myUniquePtr(string s)
+mySharedPtr<T>::mySharedPtr()
 {
-    this->name = s;
-    cout << this->name << " myUniquePtr Default Constructor " << endl;
+    cout << " mySharedPtr Default Constructor " << endl;
     this->ptr = nullptr;
+    this->ref = nullptr;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-myUniquePtr<T>::myUniquePtr(T *p, string s)
+mySharedPtr<T>::mySharedPtr(T *p)
 {
-    this->name = s;
-    cout << this->name << " myUniquePtr Parameter Constructor " << endl;
+    cout << " mySharedPtr Parameter Constructor " << endl;
     this->ptr = p;
+    this->ref = new int;
+    *this->ref = 1;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-myUniquePtr<T>::~myUniquePtr()
+mySharedPtr<T>::~mySharedPtr()
 {
-    cout << this->name << " myUniquePtr Destructor " << endl;
-    if (nullptr != this->ptr)
+    cout << " mySharedPtr Destructor " << endl;
+    if (this->ref != nullptr)
+    {
+        *this->ref = *this->ref - 1;
+    }
+
+    if (*this->ref < 1)
     {
         delete this->ptr;
+        this->ptr = nullptr;
     }
 }
 //------------------------------------------------------------------------------------------------------------------------------
+
 template <class T>
-myUniquePtr<T>::myUniquePtr(myUniquePtr &&rhs)
+mySharedPtr<T>::mySharedPtr(mySharedPtr &&rhs)
 {
-    cout << this->name << " Move Copy Constructor" << endl;
+    cout << " Move Copy Constructor" << endl;
     this->ptr = rhs.ptr;
+    this->ref = rhs.ref;
     rhs.ptr = nullptr;
+    rhs.ref = nullptr;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-void myUniquePtr<T>::operator=(myUniquePtr &&rhs)
+void mySharedPtr<T>::operator=(mySharedPtr &&rhs)
 {
     cout << this->name << " Move Assignment Operator" << endl;
-    delete[] this->ptr;
+    *this->ref = *this->ref - 1;
+    if (*this->ref < 1)
+    {
+        delete this->ptr;
+        delete this->ref;
+    }
+
     this->ptr = rhs.ptr;
     rhs.ptr = nullptr;
+
+    this->ref = rhs.ref;
+    rhs.ref = nullptr;
 }
+/*
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-T *myUniquePtr<T>::operator->()
+T *mySharedPtr<T>::operator->()
 {
     if (this->ptr == nullptr)
     {
@@ -96,29 +133,19 @@ T *myUniquePtr<T>::operator->()
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-T &myUniquePtr<T>::operator*()
+T &mySharedPtr<T>::operator*()
 {
     return *(this->ptr);
-}
+}*/
 //==============================================================================================================================
 int main(int argc, const char *argv[])
 {
     // insert code here...
-    std::cout << "\n\n~~~~~~~~~~~~~~~Unique Pointer class Implementation~~~~~~~~~~~~~~~\n\n";
+    std::cout << "\n\n~~~~~~~~~~~~~~~Shared Pointer class Implementation~~~~~~~~~~~~~~~\n\n";
     {
-        myUniquePtr<dummy> p1(new dummy(10, 20), "p1");
-        cout << "p1 sum == " << p1->sum() << endl;
-
-        myUniquePtr<dummy> p2(new dummy(1, 2), "p2");
-        cout << "p2 sum == " << p2->sum() << endl;
-
-        myUniquePtr<dummy> p3("p3");
-        p3 = move(p2);
-        cout << "p3 sum == " << p3->sum() << endl;
-
-        myUniquePtr<dummy> p4(move(p1));
-        p4.setObjectName("p4");
-        cout << "p4 sum == " << p4->sum() << endl;
+        mySharedPtr<int> p1(new int);
+        mySharedPtr<int> p2;
+        p2 = p1;
     }
     std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     return 0;
