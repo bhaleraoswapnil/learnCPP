@@ -3,170 +3,124 @@
 //  practiceCPP
 //
 //  Created by Swapnil Bhalerao on 13/09/21.
-//clang++ -std=c++14 -stdlib=libc++ main.cpp myVector.cpp myVector.hpp
+//clang++ -std=c++14 -stdlib=libc++ main.cpp
 
 #include <iostream>
+#include <string>
 using namespace std;
+
 //==============================================================================================================================
-template <class T>
-class myVector
+class dummy
 {
 private:
-    T *ptr;
-    int mCap;
-    int mCurr;
+    int a;
+    int b;
 
 public:
-    myVector();
-    myVector(const myVector &);
-    myVector &operator=(const myVector &);
-    myVector(myVector &&);
-    void operator=(myVector &&);
-    ~myVector();
-
-    // push_back() & pop_back()
-    void push_back(T);
-    void pop_back();
-    void getInfo();
+    dummy(int x, int y) : a(x), b(y) { cout << "dummy object constructor\n"; }
+    ~dummy() { cout << "dummy object deleted\n"; }
+    int sum() { return (a + b); }
 };
 //==============================================================================================================================
 template <class T>
-myVector<T>::myVector()
+class myUniquePtr
 {
-    cout << "Default Constructor" << endl;
-    this->mCap = 2;
-    this->mCurr = 0;
-    this->ptr = new T[this->mCap];
+private:
+    T *ptr;
+    string name = "*";
+
+public:
+    myUniquePtr(string);
+    myUniquePtr(T *, string);
+    ~myUniquePtr();
+    myUniquePtr(myUniquePtr &&);
+    void operator=(myUniquePtr &&);
+    myUniquePtr(const myUniquePtr &) = delete;
+    myUniquePtr &operator=(const myUniquePtr &) = delete;
+    T *operator->();
+    T &operator*();
+    void setObjectName(string s) { this->name = s; }
+};
+//==============================================================================================================================
+template <class T>
+myUniquePtr<T>::myUniquePtr(string s)
+{
+    this->name = s;
+    cout << this->name << " myUniquePtr Default Constructor " << endl;
+    this->ptr = nullptr;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-myVector<T>::~myVector()
+myUniquePtr<T>::myUniquePtr(T *p, string s)
 {
-    cout << "Destructor" << endl;
+    this->name = s;
+    cout << this->name << " myUniquePtr Parameter Constructor " << endl;
+    this->ptr = p;
+}
+//------------------------------------------------------------------------------------------------------------------------------
+template <class T>
+myUniquePtr<T>::~myUniquePtr()
+{
+    cout << this->name << " myUniquePtr Destructor " << endl;
     if (nullptr != this->ptr)
     {
-        delete[] this->ptr;
-        this->ptr = nullptr;
-        this->mCap = 0;
-        this->mCurr = 0;
+        delete this->ptr;
     }
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-myVector<T>::myVector(const myVector &rhs)
+myUniquePtr<T>::myUniquePtr(myUniquePtr &&rhs)
 {
-    cout << "Copy Constructor" << endl;
-    this->mCap = rhs.mCap;
-    this->ptr = new T[this->mCap];
-    this->mCurr = rhs.mCurr;
-    for (int i = 0; i < this->mCurr; i++)
-    {
-        this->ptr[i] = rhs.ptr[i];
-    }
-}
-//------------------------------------------------------------------------------------------------------------------------------
-template <class T>
-myVector<T> &myVector<T>::operator=(const myVector &rhs)
-{
-    cout << "Assignment Operator" << endl;
-    if (this == &rhs)
-    {
-        return (*this);
-    }
-    else
-    {
-        if (this->mCap != rhs.mCap)
-        {
-            delete[] this->ptr;
-            this->mCap = rhs.mCap;
-            this->ptr = new T[this->mCap];
-        }
-        this->mCurr = rhs.mCurr;
-        for (int i = 0; i < this->mCurr; i++)
-        {
-            this->ptr[i] = rhs.ptr[i];
-        }
-        return (*this);
-    }
-}
-//------------------------------------------------------------------------------------------------------------------------------
-template <class T>
-myVector<T>::myVector(myVector &&rhs)
-{
-    cout << "Move Constructor" << endl;
+    cout << this->name << " Move Copy Constructor" << endl;
     this->ptr = rhs.ptr;
-    this->mCap = rhs.mCap;
-    this->mCurr = rhs.mCurr;
     rhs.ptr = nullptr;
-    rhs.mCap = 0;
-    rhs.mCurr = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-void myVector<T>::operator=(myVector &&rhs)
+void myUniquePtr<T>::operator=(myUniquePtr &&rhs)
 {
-    cout << "Move Assignment Operator" << endl;
+    cout << this->name << " Move Assignment Operator" << endl;
     delete[] this->ptr;
-    this->mCap = rhs.mCap;
-    this->mCurr = rhs.mCurr;
     this->ptr = rhs.ptr;
     rhs.ptr = nullptr;
-    rhs.mCap = 0;
-    rhs.mCurr = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-void myVector<T>::push_back(T obj)
+T *myUniquePtr<T>::operator->()
 {
-    if (this->mCurr >= this->mCap)
+    if (this->ptr == nullptr)
     {
-        T *temp = this->ptr;
-        this->mCap = this->mCap * 2;
-        this->ptr = new T[this->mCap];
-        for (int i = 0; i < this->mCurr; i++)
-        {
-            this->ptr[i] = temp[i];
-        }
-        delete[] temp;
+        cout << "!!! WARNING -- NULL POINTER !!!\n";
     }
-
-    this->ptr[this->mCurr++] = obj;
+    return this->ptr;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 template <class T>
-void myVector<T>::pop_back()
+T &myUniquePtr<T>::operator*()
 {
-    this->mCurr--;
-}
-//------------------------------------------------------------------------------------------------------------------------------
-template <class T>
-void myVector<T>::getInfo()
-{
-    cout << "Capacity = " << this->mCap << "\t Current = " << this->mCurr << "\t add = " << this->ptr << endl;
-    for (int i = 0; i < this->mCurr; i++)
-    {
-        cout << this->ptr[i] << "\t";
-    }
-    cout << endl;
+    return *(this->ptr);
 }
 //==============================================================================================================================
 int main(int argc, const char *argv[])
 {
     // insert code here...
-    std::cout << "~~~~~~~~~~~~~~~Vector class Implementation~~~~~~~~~~~~~~~\n";
-
-    myVector<int> v1;
-    for (int i = 0; i < 10; i++)
+    std::cout << "\n\n~~~~~~~~~~~~~~~Unique Pointer class Implementation~~~~~~~~~~~~~~~\n\n";
     {
-        v1.push_back(i + 1);
-        v1.getInfo();
-        cout << endl;
+        myUniquePtr<dummy> p1(new dummy(10, 20), "p1");
+        cout << "p1 sum == " << p1->sum() << endl;
+
+        myUniquePtr<dummy> p2(new dummy(1, 2), "p2");
+        cout << "p2 sum == " << p2->sum() << endl;
+
+        myUniquePtr<dummy> p3("p3");
+        p3 = move(p2);
+        cout << "p3 sum == " << p3->sum() << endl;
+
+        myUniquePtr<dummy> p4(move(p1));
+        p4.setObjectName("p4");
+        cout << "p4 sum == " << p4->sum() << endl;
     }
-
-    myVector<int> v2;
-    v2 = move(v1);
-
-    myVector<int> v3 = move(v2);
+    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     return 0;
 }
 //==============================================================================================================================
